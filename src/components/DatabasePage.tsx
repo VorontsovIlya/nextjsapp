@@ -16,6 +16,7 @@ import {
   Code,
 } from 'lucide-react';
 import type { Project, Task, TeamMember } from '@/lib/database';
+import { auth } from '@/lib/auth';
 
 interface DatabasePageProps {
   projects: Project[];
@@ -53,8 +54,11 @@ export function DatabasePage({ projects, tasks, team, onReset }: DatabasePagePro
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+          <Button variant="outline" onClick={async () => { await auth.resetAuth(); window.location.reload(); }}>
+            Reset Auth
+          </Button>
           <Button variant="destructive" onClick={onReset}>
-            Reset Database
+            Reset Data
           </Button>
         </div>
       </div>

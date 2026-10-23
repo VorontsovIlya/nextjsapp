@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { AuthProvider, useAuth } from '@/components/AuthContext';
+import { LoginPage } from '@/components/LoginPage';
+import { RegisterPage } from '@/components/RegisterPage';
 import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
 import { ProjectsPage } from '@/components/ProjectsPage';
@@ -7,17 +10,40 @@ import { TeamPage } from '@/components/TeamPage';
 import { DatabasePage } from '@/components/DatabasePage';
 import { db, type Project, type Task, type TeamMember } from '@/lib/database';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
-function App() {
+function AuthScreen() {
+  const [screen, setScreen] = useState<'login' | 'register'>('login');
+
+  if (screen === 'register') {
+    return <RegisterPage onSwitchToLogin={() => setScreen('login')} />;
+  }
+
+  return <LoginPage onSwitchToRegister={() => setScreen('register')} />;
+}
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading application...</p>
+      </div>
+    </div>
+  );
+}
+
+function AppContent() {
+  const { session, loading: authLoading, isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    setDataLoading(true);
     const [projectsData, tasksData, teamData] = await Promise.all([
       db.projects.findAll(),
       db.tasks.findAll(),
@@ -26,12 +52,14 @@ function App() {
     setProjects(projectsData);
     setTasks(tasksData);
     setTeam(teamData);
-    setLoading(false);
+    setDataLoading(false);
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated, loadData]);
 
   // Project CRUD handlers
   const handleAddProject = async (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
@@ -71,12 +99,23 @@ function App() {
     await loadData();
   };
 
+  // Auth loading
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Not authenticated - show login/register
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
+  // Authenticated - show app
   const renderPage = () => {
-    if (loading) {
+    if (dataLoading) {
       return (
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Loading data from PostgreSQL...</p>
           </div>
         </div>
@@ -140,6 +179,14 @@ function App() {
         </div>
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

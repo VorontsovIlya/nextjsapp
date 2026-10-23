@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   FolderKanban,
   ListTodo,
@@ -11,6 +12,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
+import { useAuth } from '@/components/AuthContext';
 import type { Project, Task, TeamMember } from '@/lib/database';
 
 interface DashboardProps {
@@ -20,6 +22,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ projects, tasks, team }: DashboardProps) {
+  const { session } = useAuth();
   const activeProjects = projects.filter((p) => p.status === 'active').length;
   const completedProjects = projects.filter((p) => p.status === 'completed').length;
   const totalTasks = tasks.length;
@@ -91,11 +94,24 @@ export function Dashboard({ projects, tasks, team }: DashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Overview of your projects, tasks, and team activity.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                {session?.user.avatar}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">
+                Welcome back, {session?.user.name.split(' ')[0]} 👋
+              </h2>
+              <p className="text-muted-foreground">
+                Overview of your projects, tasks, and team activity.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
