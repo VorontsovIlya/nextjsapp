@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import type { Project, Task, TeamMember } from '@/lib/database';
 import { auth } from '@/lib/auth';
+import { Can } from '@/components/Can';
+import { useAuth } from '@/components/AuthContext';
 
 interface DatabasePageProps {
   projects: Project[];
@@ -26,6 +28,7 @@ interface DatabasePageProps {
 }
 
 export function DatabasePage({ projects, tasks, team, onReset }: DatabasePageProps) {
+  const { can } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -54,12 +57,16 @@ export function DatabasePage({ projects, tasks, team, onReset }: DatabasePagePro
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button variant="outline" onClick={async () => { await auth.resetAuth(); window.location.reload(); }}>
-            Reset Auth
-          </Button>
-          <Button variant="destructive" onClick={onReset}>
-            Reset Data
-          </Button>
+          <Can permission="settings:manage">
+            <Button variant="outline" onClick={async () => { await auth.resetAuth(); window.location.reload(); }}>
+              Reset Auth
+            </Button>
+          </Can>
+          <Can permission="database:reset">
+            <Button variant="destructive" onClick={onReset}>
+              Reset Data
+            </Button>
+          </Can>
         </div>
       </div>
 

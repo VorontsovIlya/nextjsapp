@@ -14,8 +14,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Lock, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, Lock, AlertCircle, CheckCircle2, Loader2, Shield } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
+import { getRoleInfo, getPermissions } from '@/lib/authz';
 
 interface ProfileDialogProps {
   open: boolean;
@@ -144,6 +145,10 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
               <Lock className="h-3.5 w-3.5" />
               Security
             </TabsTrigger>
+            <TabsTrigger value="permissions" className="flex-1 gap-2">
+              <Shield className="h-3.5 w-3.5" />
+              Access
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="mt-4">
@@ -263,6 +268,32 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                 </Button>
               </DialogFooter>
             </form>
+          </TabsContent>
+
+          <TabsContent value="permissions" className="mt-4">
+            {session && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-secondary/50">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Shield className="h-5 w-5 text-primary" />
+                    <h4 className="font-semibold">Role: {roleLabels[session.user.role]}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {getRoleInfo(session.user.role).description}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Your Permissions</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {getPermissions(session.user.role).map((perm) => (
+                      <Badge key={perm} variant="outline" className="font-mono text-xs">
+                        {perm}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

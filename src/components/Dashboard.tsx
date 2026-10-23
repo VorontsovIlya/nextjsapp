@@ -11,8 +11,10 @@ import {
   AlertTriangle,
   Users,
   Zap,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
+import { getRoleInfo } from '@/lib/authz';
 import type { Project, Task, TeamMember } from '@/lib/database';
 
 interface DashboardProps {
@@ -22,7 +24,8 @@ interface DashboardProps {
 }
 
 export function Dashboard({ projects, tasks, team }: DashboardProps) {
-  const { session } = useAuth();
+  const { session, userRole, permissions } = useAuth();
+  const roleInfo = userRole ? getRoleInfo(userRole) : null;
   const activeProjects = projects.filter((p) => p.status === 'active').length;
   const completedProjects = projects.filter((p) => p.status === 'completed').length;
   const totalTasks = tasks.length;
@@ -244,6 +247,42 @@ export function Dashboard({ projects, tasks, team }: DashboardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Role & Permissions Info */}
+      {roleInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Your Access Level
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">{roleInfo.icon}</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold">{roleInfo.label}</h3>
+                  <Badge className={roleInfo.color}>{userRole}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">{roleInfo.description}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {permissions.slice(0, 8).map((perm) => (
+                    <Badge key={perm} variant="outline" className="text-xs font-normal">
+                      {perm}
+                    </Badge>
+                  ))}
+                  {permissions.length > 8 && (
+                    <Badge variant="outline" className="text-xs font-normal">
+                      +{permissions.length - 8} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

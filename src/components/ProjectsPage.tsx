@@ -20,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Calendar, MoreVertical } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Lock } from 'lucide-react';
+import { Can } from '@/components/Can';
+import { useAuth } from '@/components/AuthContext';
 import type { Project } from '@/lib/database';
 
 interface ProjectsPageProps {
@@ -31,6 +33,7 @@ interface ProjectsPageProps {
 }
 
 export function ProjectsPage({ projects, onAdd, onUpdate, onDelete }: ProjectsPageProps) {
+  const { can } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -121,10 +124,12 @@ export function ProjectsPage({ projects, onAdd, onUpdate, onDelete }: ProjectsPa
           <h2 className="text-3xl font-bold tracking-tight">Projects</h2>
           <p className="text-muted-foreground">Manage your projects and track progress.</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
-        </Button>
+        <Can permission="projects:create">
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
+        </Can>
       </div>
 
       {/* Filters */}
@@ -155,17 +160,21 @@ export function ProjectsPage({ projects, onAdd, onUpdate, onDelete }: ProjectsPa
                   </CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(project)}>
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => { setDeletingProject(project.id); setDeleteDialogOpen(true); }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <Can permission="projects:edit">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(project)}>
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </Can>
+                  <Can permission="projects:delete">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => { setDeletingProject(project.id); setDeleteDialogOpen(true); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </Can>
                 </div>
               </div>
             </CardHeader>
@@ -203,10 +212,12 @@ export function ProjectsPage({ projects, onAdd, onUpdate, onDelete }: ProjectsPa
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground">No projects found.</p>
-            <Button variant="outline" className="mt-4" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create your first project
-            </Button>
+            <Can permission="projects:create">
+              <Button variant="outline" className="mt-4" onClick={() => setDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create your first project
+              </Button>
+            </Can>
           </CardContent>
         </Card>
       )}

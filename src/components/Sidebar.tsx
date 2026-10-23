@@ -6,17 +6,20 @@ import {
   ListTodo,
   Users,
   Database,
-  Settings,
   ChevronLeft,
   ChevronRight,
   LogOut,
   UserCircle,
+  Settings,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/components/AuthContext';
 import { ProfileDialog } from '@/components/ProfileDialog';
+import { NAV_ITEMS, getRoleInfo } from '@/lib/authz';
 
 interface SidebarProps {
   currentPage: string;
@@ -25,23 +28,23 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'projects', label: 'Projects', icon: FolderKanban },
-  { id: 'tasks', label: 'Tasks', icon: ListTodo },
-  { id: 'team', label: 'Team', icon: Users },
-  { id: 'database', label: 'Database', icon: Database },
-];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard,
+  FolderKanban,
+  ListTodo,
+  Users,
+  Database,
+  Shield,
+};
 
 export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: SidebarProps) {
-  const { session, logout } = useAuth();
+  const { session, logout, can } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const roleLabels: Record<string, string> = {
-    admin: 'Admin',
-    manager: 'Manager',
-    member: 'Member',
-  };
+  // Filter nav items based on permissions
+  const visibleNavItems = NAV_ITEMS.filter((item) => can(item.requiredPermission));
+
+  const roleInfo = session ? getRoleInfo(session.user.role) : null;
 
   return (
     <>
@@ -66,8 +69,8 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
 
         {/* Navigation */}
         <nav className="flex flex-col gap-1 p-3 flex-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+          {visibleNavItems.map((item) => {
+            const Icon = iconMap[item.icon];
             return (
               <Button
                 key={item.id}
@@ -79,7 +82,7 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
                 )}
                 onClick={() => onNavigate(item.id)}
               >
-                <Icon className="h-4 w-4 flex-shrink-0" />
+                {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
                 {!collapsed && <span>{item.label}</span>}
               </Button>
             );
@@ -88,8 +91,11 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
 
         {/* User Section */}
         <div className="border-t p-3 space-y-2 flex-shrink-0">
-          {!collapsed && session && (
-            <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-secondary/50 cursor-pointer" onClick={() => setProfileOpen(true)}>
+          {!collapsed && session && roleInfo && (
+            <div
+              className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-secondary/50 cursor-pointer"
+              onClick={() => setProfileOpen(true)}
+            >
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                   {session.user.avatar}
@@ -97,7 +103,9 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{session.user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{roleLabels[session.user.role]}</p>
+                <Badge className={`text-[10px] px-1.5 py-0 ${roleInfo.color} border`}>
+                  {roleInfo.icon} {roleInfo.label}
+                </Badge>
               </div>
               <Settings className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </div>

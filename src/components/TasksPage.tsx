@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Edit2, Trash2, Calendar, User, Search } from 'lucide-react';
+import { Can } from '@/components/Can';
+import { useAuth } from '@/components/AuthContext';
 import type { Task, Project } from '@/lib/database';
 
 interface TasksPageProps {
@@ -150,10 +152,12 @@ export function TasksPage({ tasks, projects, onAdd, onUpdate, onDelete }: TasksP
           <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
           <p className="text-muted-foreground">Manage tasks across all projects.</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Task
-        </Button>
+        <Can permission="tasks:create">
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Task
+          </Button>
+        </Can>
       </div>
 
       {/* Search and Filters */}
@@ -198,17 +202,21 @@ export function TasksPage({ tasks, projects, onAdd, onUpdate, onDelete }: TasksP
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-medium leading-tight">{task.title}</h4>
                         <div className="flex gap-0.5 flex-shrink-0">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(task)}>
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-destructive"
-                            onClick={() => { setDeletingTask(task.id); setDeleteDialogOpen(true); }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                          <Can permission="tasks:edit">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(task)}>
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          </Can>
+                          <Can permission="tasks:delete">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-destructive"
+                              onClick={() => { setDeletingTask(task.id); setDeleteDialogOpen(true); }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </Can>
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>

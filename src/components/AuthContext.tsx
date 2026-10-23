@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { auth, type AuthSession, type AuthError } from '@/lib/auth';
+import { hasPermission, isRoleAtLeast, getPermissions, type Permission, type Role } from '@/lib/authz';
 
 interface AuthContextType {
   session: AuthSession | null;
@@ -10,6 +11,11 @@ interface AuthContextType {
   updateProfile: (updates: { name?: string; email?: string }) => Promise<AuthSession | AuthError>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean } | AuthError>;
   isAuthenticated: boolean;
+  // Authorization helpers
+  can: (permission: Permission) => boolean;
+  isAtLeast: (role: Role) => boolean;
+  permissions: Permission[];
+  userRole: Role | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,6 +66,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await auth.changePassword(currentPassword, newPassword);
   }, []);
 
+  // Authorization helpers memoized
+  const userRole = session?.user.role || null;
+
+  const can = useCallback(
+    (permission: Permission): boolean => {
+      if (!userRole) return false;
+      return hasPermission(userRole, permission);
+    },
+    [userRole]
+  );
+
+  const isAtLeast = useCallback(
+    (role: Role): boolean => {
+      if (!userRole) return false;
+      return isRoleAtLeast(userRole, role);
+    },
+    [userRole]
+  );
+
+  const permissions = useMemo(() => {
+    if (!userRole) return [];
+    return getPermissions(userRole);
+  }, [userRole]);
+
   const value: AuthContextType = {
     session,
     loading,
@@ -69,6 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     changePassword,
     isAuthenticated: !!session,
+    can,
+    isAtLeast,
+    permissions,
+    userRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

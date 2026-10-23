@@ -122,23 +122,40 @@ export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
             </div>
 
             <div className="w-full border-t pt-4">
-              <p className="text-xs text-center text-muted-foreground mb-3">Demo accounts</p>
+              <p className="text-xs text-center text-muted-foreground mb-3">Demo accounts (click to autofill)</p>
               <div className="grid grid-cols-1 gap-2 text-xs">
                 <button
                   type="button"
                   onClick={() => { setEmail('admin@company.com'); setPassword('admin123'); setError(''); }}
                   className="flex items-center justify-between p-2 rounded-md border hover:bg-secondary/50 text-left"
                 >
-                  <span className="font-medium">Admin</span>
-                  <span className="text-muted-foreground">admin@company.com / admin123</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🛡️</span>
+                    <span className="font-medium">Admin</span>
+                  </div>
+                  <span className="text-muted-foreground">Full access</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => { setEmail('sarah@company.com'); setPassword('sarah123'); setError(''); }}
                   className="flex items-center justify-between p-2 rounded-md border hover:bg-secondary/50 text-left"
                 >
-                  <span className="font-medium">Manager</span>
-                  <span className="text-muted-foreground">sarah@company.com / sarah123</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📋</span>
+                    <span className="font-medium">Manager</span>
+                  </div>
+                  <span className="text-muted-foreground">Projects & tasks</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEmail('marcus@company.com'); setPassword('marcus123'); setError(''); }}
+                  className="flex items-center justify-between p-2 rounded-md border hover:bg-secondary/50 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">👤</span>
+                    <span className="font-medium">Member</span>
+                  </div>
+                  <span className="text-muted-foreground">View & tasks</span>
                 </button>
               </div>
             </div>

@@ -8,6 +8,8 @@ import { ProjectsPage } from '@/components/ProjectsPage';
 import { TasksPage } from '@/components/TasksPage';
 import { TeamPage } from '@/components/TeamPage';
 import { DatabasePage } from '@/components/DatabasePage';
+import { AuthorizationPage } from '@/components/AuthorizationPage';
+import { ProtectedPage } from '@/components/ProtectedPage';
 import { db, type Project, type Task, type TeamMember } from '@/lib/database';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -109,7 +111,7 @@ function AppContent() {
     return <AuthScreen />;
   }
 
-  // Authenticated - show app
+  // Authenticated - show app with route protection
   const renderPage = () => {
     if (dataLoading) {
       return (
@@ -124,39 +126,63 @@ function AppContent() {
 
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard projects={projects} tasks={tasks} team={team} />;
+        return (
+          <ProtectedPage permission="dashboard:view" resource="the dashboard">
+            <Dashboard projects={projects} tasks={tasks} team={team} />
+          </ProtectedPage>
+        );
       case 'projects':
         return (
-          <ProjectsPage
-            projects={projects}
-            onAdd={handleAddProject}
-            onUpdate={handleUpdateProject}
-            onDelete={handleDeleteProject}
-          />
+          <ProtectedPage permission="projects:view" resource="the projects page">
+            <ProjectsPage
+              projects={projects}
+              onAdd={handleAddProject}
+              onUpdate={handleUpdateProject}
+              onDelete={handleDeleteProject}
+            />
+          </ProtectedPage>
         );
       case 'tasks':
         return (
-          <TasksPage
-            tasks={tasks}
-            projects={projects}
-            onAdd={handleAddTask}
-            onUpdate={handleUpdateTask}
-            onDelete={handleDeleteTask}
-          />
+          <ProtectedPage permission="tasks:view" resource="the tasks page">
+            <TasksPage
+              tasks={tasks}
+              projects={projects}
+              onAdd={handleAddTask}
+              onUpdate={handleUpdateTask}
+              onDelete={handleDeleteTask}
+            />
+          </ProtectedPage>
         );
       case 'team':
-        return <TeamPage team={team} tasks={tasks} />;
+        return (
+          <ProtectedPage permission="team:view" resource="the team page">
+            <TeamPage team={team} tasks={tasks} />
+          </ProtectedPage>
+        );
       case 'database':
         return (
-          <DatabasePage
-            projects={projects}
-            tasks={tasks}
-            team={team}
-            onReset={handleResetDatabase}
-          />
+          <ProtectedPage permission="database:view" resource="the database explorer">
+            <DatabasePage
+              projects={projects}
+              tasks={tasks}
+              team={team}
+              onReset={handleResetDatabase}
+            />
+          </ProtectedPage>
+        );
+      case 'authorization':
+        return (
+          <ProtectedPage permission="users:view" resource="the authorization rules page">
+            <AuthorizationPage />
+          </ProtectedPage>
         );
       default:
-        return <Dashboard projects={projects} tasks={tasks} team={team} />;
+        return (
+          <ProtectedPage permission="dashboard:view" resource="the dashboard">
+            <Dashboard projects={projects} tasks={tasks} team={team} />
+          </ProtectedPage>
+        );
     }
   };
 
